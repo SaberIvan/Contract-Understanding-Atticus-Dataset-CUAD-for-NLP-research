@@ -7,8 +7,6 @@ Original file is located at
     https://colab.research.google.com/drive/12wDHgk3SLKJT24j4wsS35O-BscbEL5zy
 """
 
-!pip install pyspark
-
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql import Window, Row
