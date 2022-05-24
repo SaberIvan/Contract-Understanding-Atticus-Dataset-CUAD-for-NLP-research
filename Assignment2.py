@@ -79,8 +79,8 @@ spark = SparkSession \
     .getOrCreate() 
 
 data = "test.json"
-data = "CUADv1.json"
-data = "train_separate_questions.json"
+#data = "CUADv1.json"
+#data = "train_separate_questions.json"
 init_df = spark.read.json(data)
 data_df = init_df.select(explode("data").alias("data"))
 paragraph_df = data_df.select(explode("data.paragraphs").alias("paragraph"))
