@@ -11,6 +11,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
 from pyspark.sql import Window, Row
 from pyspark.sql.types import IntegerType, StringType, FloatType
+import random
 
 def split_true_context(line):
   stride = 2048
