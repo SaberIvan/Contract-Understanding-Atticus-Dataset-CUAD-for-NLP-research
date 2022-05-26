@@ -1,5 +1,5 @@
 spark-submit \
     --master yarn \
     --deploy-mode cluster \
-    comp5349_a2.py \
+    Assignment2.py \
     --output $1
