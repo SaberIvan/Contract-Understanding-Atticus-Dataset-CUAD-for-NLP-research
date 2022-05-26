@@ -17,6 +17,7 @@ def split_true_context(line):
   window_size = 4096
   # stride = 256
   # window_size = 512
+  times = 0
   result = []
   source_number = int(line[5])
   context_length = len(line[1])
@@ -38,10 +39,11 @@ def split_false_context(line):
     window_size = 4096
     # stride = 256
     # window_size = 512
+    times = 0
     result = []
     context_length = len(line[0])
     if(context_length % stride ==0):
-      times = context_length / stride
+      times = int(context_length / stride)
     else:
       times = int(context_length / stride) + 1
     if times==1:
@@ -52,16 +54,41 @@ def split_false_context(line):
       for i in range(times):
         answer_start_of_contract = line[3]
         answer_end_of_contract = line[3] + len(line[4])
-        if(i* stride <= answer_start_of_contract < i * stride + window_size or i* stride < answer_start_of_contract <= i * stride + window_size):
-          result.append(Row(source=line[0][i * stride: i * stride + window_size], question=line[2], answer_start=line[3] % stride, answer_end=line[3] % stride + len(line[4]), type_name="positive"))
-          #result.append((line[0][i * stride: i * stride + window_size], line[2], line[3] % stride, line[3] % 2048 + len(line[4]), "positive", line[5]))
-          count += 1
+        if i == 0:
+          if(i* stride <= answer_start_of_contract < i * stride + window_size and i* stride < answer_end_of_contract <= i * stride + window_size):
+            result.append(Row(source=line[0][i * stride: i * stride + window_size], question=line[2], answer_start=line[3], answer_end=answer_end_of_contract, type_name="positive"))
+            count += 1
+            
+          elif(i* stride <= answer_start_of_contract < i * stride + window_size and answer_end_of_contract > i * stride + window_size):
+            result.append(Row(source=line[0][i * stride: i * stride + window_size], question=line[2], answer_start=line[3], answer_end=window_size, type_name="positive"))
+            count += 1
+            
+          elif(i* stride < answer_end_of_contract <= i * stride + window_size and answer_start_of_contract < i * stride):
+            result.append(Row(source=line[0][i * stride: i * stride + window_size], question=line[2], answer_start=0, answer_end=answer_end_of_contract, type_name="positive"))
+            count += 1
+          else:
+            temp_result.append(Row(source=line[0][i * stride: i * stride + window_size], question=line[2], answer_start=0, answer_end=0, type_name="possible nagative"))
+
         else:
-          temp_result.append(Row(source=line[0][i * stride: i * stride + window_size], question=line[2], answer_start=0, answer_end=0, type_name="possible nagative"))
-          #temp_result.append((line[0][i * stride: i * stride + window_size], line[2], 0, 0, "possible negative", line[5]))
+          if(i* stride <= answer_start_of_contract < i * stride + window_size and i* stride < answer_end_of_contract <= i * stride + window_size):
+            result.append(Row(source=line[0][i * stride: i * stride + window_size], question=line[2], answer_start=line[3] % (i* stride), answer_end=answer_end_of_contract % (i* stride), type_name="positive"))
+            count += 1
+            
+          elif(i* stride <= answer_start_of_contract < i * stride + window_size and answer_end_of_contract > i * stride + window_size):
+            result.append(Row(source=line[0][i * stride: i * stride + window_size], question=line[2], answer_start=line[3] % (i* stride), answer_end=window_size, type_name="positive"))
+            count += 1
+            
+          elif(i* stride <= answer_end_of_contract <= i * stride + window_size and answer_start_of_contract < i * stride):
+            result.append(Row(source=line[0][i * stride: i * stride + window_size], question=line[2], answer_start=0, answer_end=answer_end_of_contract % (i* stride), type_name="positive"))
+            count += 1
+          else:
+            temp_result.append(Row(source=line[0][i * stride: i * stride + window_size], question=line[2], answer_start=0, answer_end=0, type_name="possible nagative"))
+            #temp_result.append((line[0][i * stride: i * stride + window_size], line[2], 0, 0, "possible negative", line[5]))
       if count==1:
+        random.shuffle(temp_result)
         result.append(temp_result[0])
       else:
+        random.shuffle(temp_result)
         result.extend(temp_result[:count])
       return result
 
@@ -81,26 +108,26 @@ spark = SparkSession \
     .config("spark.driver.cores", 3)\
     .getOrCreate()
 
-data = "test.json"
-#data = "CUADv1.json"
-#data = "train_separate_questions.json"
+data ="test.json"
+# data = "train_separate_questions.json"
+# data ="CUADv1.json"
 init_df = spark.read.json(data)
 data_df = init_df.select(explode("data").alias("data"))
 paragraph_df = data_df.select(explode("data.paragraphs").alias("paragraph"))
-
-
 context_qas_df = paragraph_df.select("paragraph.context", explode("paragraph.qas").alias('qas'))
 
 positive_contract_number = context_qas_df.where(col("qas.is_impossible")== False).groupBy("context").count().withColumnRenamed("count","positive_contract_count")
 
 temp_df = context_qas_df.select("context", "qas.is_impossible", "qas.question", explode_outer("qas.answers").alias('answers'))
 element_df = temp_df.select("context", "is_impossible", "question", "answers.answer_start", "answers.text").cache()
-element_rdd = element_df.where(col("is_impossible") == False).rdd.map(lambda x:(x[0], x[1], x[2], x[3], x[4])).cache()
-type_rdd = element_rdd.flatMap(split_false_context)
-type_df = spark.createDataFrame(type_rdd).cache()
 
-positive_possible_result = type_df.select("source","question","answer_start","answer_end")
-positive_count = type_df.where(col("type_name")=="positive").groupBy("question").count()
+element_rdd = element_df.where(col("is_impossible") == False).rdd.map(lambda x:(x[0], x[1], x[2], x[3], x[4]))
+positive_possible_rdd = element_rdd.flatMap(split_false_context)
+positive_possible_df = spark.createDataFrame(positive_possible_rdd).cache()
+
+positive_possible_result = positive_possible_df.select("source","question","answer_start","answer_end")
+
+positive_count = positive_possible_df.where(col("type_name")=="positive").groupBy("question").count()
 
 impossible_df = element_df.where(col("is_impossible") == True).join(positive_count,"question",'inner').join(positive_contract_number,"context",'inner').cache()
 udf_fc = udf(lambda x,y:impossible_count(x,y), FloatType())
@@ -114,4 +141,6 @@ impossible_result = spark.createDataFrame(impossible_rdd).cache()
 
 result = positive_possible_result.union(impossible_result)
 print(result.count())
-result.show()
+print(impossible_result.count())
+result.show(200,truncate=False)
+result.coalesce(1).write.mode("overwrite").json("source_corpus_CUAD.json")
