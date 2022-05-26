@@ -73,10 +73,13 @@ def impossible_count(count, positive_contract_count):
 spark = SparkSession \
     .builder \
     .appName("COMP5349 A2") \
+    .master("local[*]")\
     .config("spark.driver.memory", "10g")\
     .config("spark.sql.inMemoryColumnarStorage.compressed", "true")\
     .config("spark.sql.execution.arrow.enabled", "true")\
-    .getOrCreate() 
+    .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")\
+    .config("spark.driver.cores", 3)\
+    .getOrCreate()
 
 data = "test.json"
 #data = "CUADv1.json"
