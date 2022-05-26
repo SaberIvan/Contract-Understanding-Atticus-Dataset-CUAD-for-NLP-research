@@ -68,7 +68,7 @@ def split_false_context(line):
             result.append(Row(source=line[0][i * stride: i * stride + window_size], question=line[2], answer_start=0, answer_end=answer_end_of_contract, type_name="positive"))
             count += 1
           else:
-            temp_result.append(Row(source=line[0][i * stride: i * stride + window_size], question=line[2], answer_start=0, answer_end=0, type_name="possible nagative"))
+            temp_result.append(Row(source=line[0][i * stride: i * stride + window_size], question=line[2], answer_start=0, answer_end=0, type_name="possible negative"))
 
         else:
           if(i* stride <= answer_start_of_contract < i * stride + window_size and i* stride < answer_end_of_contract <= i * stride + window_size):
@@ -83,7 +83,7 @@ def split_false_context(line):
             result.append(Row(source=line[0][i * stride: i * stride + window_size], question=line[2], answer_start=0, answer_end=answer_end_of_contract % (i* stride), type_name="positive"))
             count += 1
           else:
-            temp_result.append(Row(source=line[0][i * stride: i * stride + window_size], question=line[2], answer_start=0, answer_end=0, type_name="possible nagative"))
+            temp_result.append(Row(source=line[0][i * stride: i * stride + window_size], question=line[2], answer_start=0, answer_end=0, type_name="possible negative"))
             #temp_result.append((line[0][i * stride: i * stride + window_size], line[2], 0, 0, "possible negative", line[5]))
       if count==1:
         random.shuffle(temp_result)
@@ -101,12 +101,10 @@ def impossible_count(count, positive_contract_count):
 spark = SparkSession \
     .builder \
     .appName("COMP5349 A2") \
-    .master("local[*]")\
     .config("spark.driver.memory", "10g")\
     .config("spark.sql.inMemoryColumnarStorage.compressed", "true")\
     .config("spark.sql.execution.arrow.enabled", "true")\
     .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")\
-    .config("spark.driver.cores", 3)\
     .getOrCreate()
 
 data ="test.json"
