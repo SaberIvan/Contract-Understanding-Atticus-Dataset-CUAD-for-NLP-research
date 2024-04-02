@@ -48,7 +48,6 @@ Before proceeding, ensure you have:
 3.**Deploy and Run Your Spark Application:**
 
    sh submit_cluster.sh
-
 ## Conclusion
 
 Integrating cloud computing with NLP through Spark's RDD API and the RAKE algorithm, this project underscores the importance of efficient data processing and keyword extraction. It demonstrates the practical application of these technologies in extracting meaningful information from large datasets, offering valuable insights into cloud computing and NLP fields.
