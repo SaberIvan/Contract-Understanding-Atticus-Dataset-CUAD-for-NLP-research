@@ -43,11 +43,11 @@ Before proceeding, ensure you have:
    ```bash
    ssh -i /path/to/your-key.pem ec2-user@your-ec2-instance-public-dns
 2.**Navigate to Your Spark Application Directory:**
-  
-    cd /path/to/your-spark-application-directory
+
+      cd /path/to/your-spark-application-directory
 3.**Deploy and Run Your Spark Application:**
 
-    sh submit_cluster.sh
+   sh submit_cluster.sh
 
 ## Conclusion
 
