@@ -25,7 +25,7 @@ Submissions include a Jupyter notebook with the implemented solution, a README f
 
 ## RAKE Implementation Report
 
-*Content about the RAKE Implementation Report goes here.*
+**
 
 ## Deployment on AWS EC2 with YARN Cluster
 
