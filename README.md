@@ -42,20 +42,16 @@ Before proceeding, ensure you have:
 ### Steps for Deployment
 
 1. **Log into Your EC2 Instance:**
+
    
    Use SSH to connect to your master EC2 instance where Spark is configured:
 
    ```bash
    ssh -i /path/to/your-key.pem ec2-user@your-ec2-instance-public-dns
-Navigate to Your Spark Application Directory:
-
-bash
-Copy code
+   
+2. **Navigate to Your Spark Application Directory:**
 cd /path/to/your-spark-application-directory
-Deploy and Run Your Spark Application:
-
-bash
-Copy code
+3. **Deploy and Run Your Spark Application:**
 sh submit_cluster.sh
 Ensure submit_cluster.sh contains the appropriate spark-submit command tailored to your project and environment, similar to the one provided in the previous instructions.
 
